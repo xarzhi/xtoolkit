@@ -151,7 +151,7 @@ const routes = [
 				// 一级菜单：白板（Excelidraw 画板，React 组件，见 views/whiteboard）
 				path: 'whiteboard',
 				component: () => import('@/views/whiteboard/Whiteboard.vue'),
-				meta: { title: '白板', icon: 'antd:HighlightOutlined' },
+				meta: { title: '白板', icon: 'img:excalidraw' },
 			},
 		],
 	},

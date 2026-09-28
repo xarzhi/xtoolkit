@@ -1,7 +1,17 @@
 <template>
+	<img
+		v-if="imageIcon"
+		:src="imageIcon"
+		class="icon-image"
+		alt=""
+		:style="{
+			width: props.fontSize,
+			height: props.fontSize,
+		}"
+	/>
 	<i
+		v-else-if="props.icon && !antIcon"
 		:class="`iconfont ${props.icon} ${props.active ? 'active' : ''}`"
-		v-if="props.icon && !antIcon"
 		:style="{
 			color: props.active ? '#1677ff' : props.color,
 			fontSize: props.fontSize,
@@ -92,11 +102,35 @@ const antIcon = computed(() => {
 	if (!name.startsWith('antd:')) return null
 	return ANT_ICONS[name.slice(5)] || null
 })
+
+/**
+ * 图片图标：icon 传 `img:文件名`（不带扩展名），从 src/assets/images 里找同名图片。
+ * 例如放了 excalidraw.png 就用 `img:excalidraw`。
+ */
+const IMAGE_ICONS = import.meta.glob('../assets/images/*.{png,svg,jpg,jpeg,webp,gif}', {
+	eager: true,
+	import: 'default',
+})
+
+const imageIcon = computed(() => {
+	const name = String(props.icon || '')
+	if (!name.startsWith('img:')) return ''
+	const wanted = name.slice(4).trim().toLowerCase()
+	const key = Object.keys(IMAGE_ICONS).find(path => {
+		const file = path.split('/').pop() || ''
+		return file.replace(/\.[^.]+$/, '').toLowerCase() === wanted
+	})
+	return key ? IMAGE_ICONS[key] : ''
+})
 </script>
 
 <style lang="scss" scoped>
 .iconfont {
 	font-weight: 500;
+}
+.icon-image {
+	object-fit: contain;
+	vertical-align: middle;
 }
 .active {
 	color: #1677ff !important;
