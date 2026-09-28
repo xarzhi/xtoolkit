@@ -1,146 +1,157 @@
 <template>
-	<div class="top_box">
-		<div class="top">
-			<div class="top_box left"></div>
-			<div class="top_box center"></div>
-			<div class="top_box right">
-				<div class="welcome">欢迎您：{{ userinfo.username }}</div>
-				<div class="logout" @click="logout">
-					<i class="iconfont icon-dengchu-circle-r-xian"></i>
-					<div class="text">退出登录</div>
+	<!-- 双击最大化由 Tauri 的 data-tauri-drag-region 内置处理（见 tauri/src/window/scripts/drag.js），
+	     这里不要再绑 @dblclick，否则会与内置行为互相抵消 -->
+	<div class="topbar top" data-tauri-drag-region>
+		<div class="left">
+			<div class="logo_box" v-if="!collapsed">
+				<div class="logo" @click.stop="toggleMenuCollapsed">
+					<img src="/logo.png" alt="" />
+				</div>
+				<div class="title" @click.stop="toggleMenuCollapsed">XToolKit</div>
+			</div>
+			<div class="logo_box collapsed" v-else>
+				<div class="logo" @click.stop="toggleMenuCollapsed" title="展开菜单">
+					<img src="/logo.png" alt="" />
 				</div>
 			</div>
 		</div>
-		<div class="breadcrumb_box">
-			<a-breadcrumb>
-				<a-breadcrumb-item v-for="(item, index) in breadcrumbs" :href="item.path" :key="index">
-					<div class="label_box">
-						<div class="label" @click="jump(item)">{{ item.label }}</div>
-						<div class="close" @click="handleDelete(index)" v-if="index !== 0">
-							<CloseOutlined style="font-size: 12px" />
-						</div>
-					</div>
-				</a-breadcrumb-item>
-			</a-breadcrumb>
+
+		<div class="right">
+			<div class="titlebar-button" title="全屏切换" @click.stop="toggleFullscreen">
+				<i class="iconfont icon-fullscreen"></i>
+			</div>
+			<div class="titlebar-button" id="titlebar-minimize" title="最小化" @click.stop="minimize">
+				<i class="iconfont icon-minimize"></i>
+			</div>
+			<div class="titlebar-button" id="titlebar-maximize" title="最大化 / 还原" @click.stop="toggleMaximize">
+				<i class="iconfont icon-maximize"></i>
+			</div>
+			<div class="titlebar-button close" id="titlebar-close" title="关闭" @click.stop="close">
+				<i class="iconfont icon-close"></i>
+			</div>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { onMounted, watch, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { CloseOutlined } from '@ant-design/icons-vue'
-import { useUserStore } from '@/store/users'
+import { computed } from 'vue'
+import { isTauri } from '@/utils/tauriIO'
+import { toggleMenuCollapsed, uiState } from '@/utils/uiState'
 
-const route = useRoute()
-const router = useRouter()
-const userinfo = JSON.parse(localStorage.getItem('userinfo'))
-const userStore = useUserStore()
+const collapsed = computed(() => uiState.menuCollapsed)
 
-const breadcrumbs = ref([
-	{
-		path: '/',
-		label: '首页',
-	},
-])
-
-onMounted(() => {})
-
-watch(route, newV => {
-	const index = breadcrumbs.value.findIndex(item => item.path === newV.path)
-	if (index !== -1) {
-		breadcrumbs.value.splice(index, 1)
+/** 浏览器里（pnpm dev）没有 Tauri API，统一走 withWindow 兜底 */
+const withWindow = async action => {
+	if (!isTauri()) return
+	try {
+		const { getCurrentWindow } = await import('@tauri-apps/api/window')
+		await action(getCurrentWindow())
+	} catch (err) {
+		console.warn('窗口操作失败', err)
 	}
-	breadcrumbs.value.push({
-		path: newV.path,
-		label: newV.meta.name,
+}
+
+const minimize = () => withWindow(w => w.minimize())
+const toggleMaximize = () => withWindow(w => w.toggleMaximize())
+const close = () => withWindow(w => w.close())
+
+const toggleFullscreen = () =>
+	withWindow(async w => {
+		const full = await w.isFullscreen()
+		await w.setFullscreen(!full)
 	})
-})
-
-const handleDelete = index => {
-	breadcrumbs.value.splice(index, 1)
-}
-
-const jump = item => {
-	router.push(item.path)
-}
-
-const punch = () => {
-	store.open()
-}
-const logout = async () => {
-	const res = await userStore.LOGOUT()
-	if (res) {
-		router.push('/login')
-	}
-}
-const onFold = () => {
-	if (store.width == 64) {
-		store.setWidth(200)
-	} else {
-		store.setWidth(64)
-	}
-}
 </script>
 
 <style lang="scss" scoped>
-.top_box {
-	margin-bottom: 10px;
+.top {
+	flex: none;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+	position: relative;
+	z-index: 10;
+	width: 100%;
+	box-sizing: border-box;
+}
 
-	.top {
-		height: var(--top-height);
-		box-shadow: 0 1px 2px #ccc;
+.topbar {
+	height: var(--top-height);
+	background: #fff;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+	user-select: none;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.left {
+	display: flex;
+	align-items: center;
+	box-sizing: border-box;
+	flex-shrink: 0;
+	.logo_box {
 		display: flex;
-		justify-content: space-between;
-		.top_box {
+		align-items: center;
+		height: var(--top-height);
+		padding: 0 12px;
+		.logo {
+			width: 32px;
+			height: 32px;
+			margin-right: 10px;
+			border-radius: 6px;
 			overflow: hidden;
-			flex: 1 1 33.33%;
 			display: flex;
+			justify-content: center;
 			align-items: center;
-			height: 100%;
-		}
-		.right {
-			justify-content: end;
-			.logout {
-				display: flex;
-				align-items: center;
-				margin-left: 20px;
-				margin-right: 30px;
-				padding: 5px 10px;
-				border-radius: 5px;
-				transition: background-color 0.3s;
-				cursor: pointer;
-				.text {
-					margin-left: 8px;
-				}
-				&:hover {
-					background-color: rgba($color: #000000, $alpha: 0.2);
-				}
+			cursor: pointer;
+			transition: background-color 0.15s;
+			img {
+				width: 26px;
+				height: 26px;
 			}
+			&:hover {
+				background-color: rgba(0, 0, 0, 0.06);
+			}
+			&:active {
+				transform: scale(0.96);
+			}
+		}
+		.title {
+			font-size: 14px;
+			font-weight: 600;
+			color: #333;
+			cursor: pointer;
+			white-space: nowrap;
 		}
 	}
-	.breadcrumb_box {
-		box-sizing: border-box;
-		padding-left: 10px;
-		padding-top: 5px;
-		.label_box {
-			display: flex;
-			&:hover {
-				.close {
-					opacity: 1;
-					width: 10px;
-				}
-			}
-			.label {
-				margin-right: 5px;
-			}
-			.close {
-				width: 0;
-				opacity: 0;
-				transition:
-					opacity,
-					width 0.2s;
-			}
+}
+
+.right {
+	display: flex;
+	align-items: center;
+	height: 100%;
+}
+
+.titlebar-button {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 42px;
+	height: 100%;
+	cursor: pointer;
+	transition: background-color 0.15s;
+	i {
+		color: #555;
+		font-size: 15px;
+	}
+	&:hover {
+		background: rgba(0, 0, 0, 0.06);
+	}
+	&:active {
+		background: rgba(0, 0, 0, 0.12);
+	}
+	&.close:hover {
+		background: #e81123;
+		i {
+			color: #fff;
 		}
 	}
 }

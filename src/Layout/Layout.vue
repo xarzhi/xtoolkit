@@ -1,16 +1,18 @@
 <template>
 	<div class="layout">
-		<Menu />
-		<div class="main">
-			<!-- <Top /> -->
-			<div class="router-content">
-				<router-view v-slot="{ Component }">
-					<transition name="slide" mode="out-in">
-						<keep-alive>
-							<component :is="Component" :key="$route.fullPath" />
-						</keep-alive>
-					</transition>
-				</router-view>
+		<Top />
+		<div class="body">
+			<Menu />
+			<div class="main">
+				<div class="router-content">
+					<router-view v-slot="{ Component }">
+						<transition name="slide" mode="out-in">
+							<keep-alive>
+								<component :is="Component" :key="$route.fullPath" />
+							</keep-alive>
+						</transition>
+					</router-view>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -18,7 +20,7 @@
 
 <script setup>
 import Menu from './conponents/Menu.vue'
-// import Top from './conponents/Top.vue'
+import Top from './conponents/Top.vue'
 </script>
 
 <style lang="scss" scoped>
@@ -26,7 +28,14 @@ import Menu from './conponents/Menu.vue'
 	width: 100%;
 	height: 100vh;
 	display: flex;
+	flex-flow: column;
 	overflow: hidden;
+	.body {
+		flex: 1;
+		min-height: 0;
+		display: flex;
+		overflow: hidden;
+	}
 	.main {
 		overflow: hidden;
 		width: 100%;

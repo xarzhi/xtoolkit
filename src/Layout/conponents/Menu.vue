@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { reactive, watch, ref, h, onMounted } from 'vue'
+import { computed, reactive, watch, ref, h, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { routes } from '../../router/index'
 import {
@@ -49,10 +49,12 @@ import {
 	AppstoreOutlined,
 } from '@ant-design/icons-vue'
 import XIcon from '@/components/XIcon.vue'
+import { toggleMenuCollapsed, uiState } from '@/utils/uiState'
 const selectedKeys = ref(['1-0'])
 const openKeys = ref(['0-0'])
-const collapsed = ref(false)
-const menuWidth = ref(255)
+// 折叠状态与顶部栏共用（点顶部栏 logo 也能收起/展开）
+const collapsed = computed(() => uiState.menuCollapsed)
+const menuWidth = computed(() => (uiState.menuCollapsed ? 80 : 255))
 const router = useRouter()
 const route = useRoute()
 const menus = ref([])
@@ -134,12 +136,7 @@ const handleClick = ({ item }) => {
 	router.push(item.path)
 }
 const toggleCollapsed = () => {
-	collapsed.value = !collapsed.value
-	if (collapsed.value) {
-		menuWidth.value = 80
-	} else {
-		menuWidth.value = 255
-	}
+	toggleMenuCollapsed()
 }
 
 // watch(
