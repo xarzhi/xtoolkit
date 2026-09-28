@@ -1,0 +1,83 @@
+/* 各工具页共用的基础布局 */
+.tool {
+	display: flex;
+	flex-flow: column;
+	height: 100%;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+.tool-title {
+	flex: none;
+	display: flex;
+	align-items: center;
+	height: 30px;
+	line-height: 30px;
+	margin-bottom: 16px;
+	padding-left: 10px;
+	position: relative;
+	font-size: 18px;
+	font-weight: 600;
+	color: #262626;
+
+	&::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 5px;
+		height: 100%;
+		border-radius: 3px;
+		background-color: #1677ff;
+	}
+
+	.tip {
+		margin-left: 12px;
+		font-size: 12px;
+		font-weight: 400;
+		color: rgba(0, 0, 0, 0.45);
+	}
+}
+
+.tool-content {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+	box-sizing: border-box;
+}
+
+.tool-footer {
+	flex: none;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 12px;
+	min-height: 56px;
+	padding: 8px 12px;
+	box-sizing: border-box;
+	border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.tool-card {
+	background: #fff;
+	border-radius: 12px;
+	padding: 12px 16px;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.hint {
+	font-size: 12px;
+	color: rgba(0, 0, 0, 0.45);
+}
+
+.thumb {
+	width: 56px;
+	height: 56px;
+	object-fit: contain;
+	border-radius: 6px;
+	background:
+		linear-gradient(45deg, #f2f2f2 25%, transparent 25%, transparent 75%, #f2f2f2 75%) 0 0 / 12px 12px,
+		linear-gradient(45deg, #f2f2f2 25%, transparent 25%, transparent 75%, #f2f2f2 75%) 6px 6px / 12px 12px,
+		#fff;
+}
