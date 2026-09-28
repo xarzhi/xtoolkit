@@ -6,13 +6,26 @@ export const VIDEO_EXTS = ['mp4', 'webm', 'mkv', 'mov', 'm4v', 'avi', 'ogv', 'mp
 
 export const VIDEO_FILTER = { name: '视频', extensions: VIDEO_EXTS }
 
+/**
+ * 给 video/audio 设置地址。
+ * 走 asset 协议（不是 blob:）时必须带 crossOrigin='anonymous'：
+ * 否则画布会被标记为「被污染」，getImageData / toBlob 会直接抛 SecurityError，
+ * 裁剪、转 GIF 这些取帧的功能就全废了。asset 协议本身会回 Access-Control-Allow-Origin。
+ * 注意 crossOrigin 必须在 src 之前设置，设完再改是无效的。
+ */
+export function setVideoSrc(media, url) {
+	if (!media || !url) return
+	if (!String(url).startsWith('blob:')) media.crossOrigin = 'anonymous'
+	media.src = url
+}
+
 /** 用字节数据创建 video 元素并等待元数据就绪 */
 export async function createVideoElement(url) {
 	const video = document.createElement('video')
 	video.preload = 'auto'
 	video.muted = true
 	video.playsInline = true
-	video.src = url
+	setVideoSrc(video, url)
 	await new Promise((resolve, reject) => {
 		const cleanup = () => {
 			video.removeEventListener('loadeddata', onLoaded)

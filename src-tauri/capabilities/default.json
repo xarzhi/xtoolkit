@@ -20,6 +20,7 @@
     "fs:allow-mkdir",
     "fs:allow-exists",
     "fs:allow-read-dir",
+    "fs:allow-stat",
     "fs-pro:default",
     "fs-pro:allow-icon",
     "fs-pro:allow-get-default-save-icon-path",

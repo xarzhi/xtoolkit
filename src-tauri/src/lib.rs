@@ -1,7 +1,17 @@
 mod audio_player;
 use crate::audio_player::AudioPlayer;
-use tauri::Manager;
-use tauri::Window;
+use tauri::menu::{Menu, MenuItem};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::{Manager, Window, WindowEvent};
+
+/// 显示并聚焦主窗口（托盘左键、菜单里都用得到）
+fn show_main_window(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+    }
+}
 
 #[tauri::command]
 fn play(state: tauri::State<AudioPlayer>, window: Window, path: String) -> Result<(), String> {
@@ -46,7 +56,43 @@ pub fn run() {
         .plugin(tauri_plugin_fs_pro::init())
         .setup(move |app: &mut tauri::App| {
             app.manage(player);
+
+            // 托盘：左键显示窗口，右键弹出菜单（目前只有「退出」）
+            let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&quit])?;
+            let mut builder = TrayIconBuilder::with_id("main-tray")
+                .tooltip("XToolKit")
+                .menu(&menu)
+                // 左键不要弹菜单，留给「显示窗口」
+                .show_menu_on_left_click(false)
+                .on_menu_event(|app, event| {
+                    if event.id().as_ref() == "quit" {
+                        app.exit(0);
+                    }
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        show_main_window(tray.app_handle());
+                    }
+                });
+            if let Some(icon) = app.default_window_icon().cloned() {
+                builder = builder.icon(icon);
+            }
+            builder.build(app)?;
+
             Ok(())
+        })
+        // 关窗口只是收进托盘，真正退出走托盘菜单的「退出」
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                let _ = window.hide();
+            }
         })
         .invoke_handler(tauri::generate_handler![play, expand_env_path])
         .run(tauri::generate_context!())

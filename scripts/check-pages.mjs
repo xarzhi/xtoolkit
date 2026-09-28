@@ -53,6 +53,7 @@ const DEFAULT_ROUTES = [
 	'/pictures/iconExtraction',
 	'/video/videoCrop',
 	'/video/videoTrim',
+	'/video/videoFrame',
 	'/video/videoConvert',
 	'/video/videoToGif',
 	'/audio/audioConvert',

@@ -78,6 +78,38 @@ export async function readSourceText(source) {
 	return await readTextFile(source)
 }
 
+/**
+ * 给 <video> / <audio> / <img> 用的 URL，**不会把文件读进内存**。
+ * - 浏览器里的 File/Blob：直接 createObjectURL
+ * - Tauri 路径：走 asset 协议（Rust 侧按 Range 分块读，几个 G 的视频也不吃内存）
+ * 大视频以前是整份 readFile 进 WebView，几 G 的文件会直接把程序撑崩。
+ */
+export async function createStreamUrl(source) {
+	if (source instanceof Blob) return URL.createObjectURL(source)
+	if (typeof source !== 'string') throw new Error('不支持的文件来源')
+	if (!isTauri()) throw new Error('浏览器环境无法读取本地路径，请使用 Tauri 运行')
+	const { convertFileSrc } = await import('@tauri-apps/api/core')
+	return convertFileSrc(source)
+}
+
+/** asset 协议的 URL 不用 revoke，只有 blob: 需要（否则内存泄漏） */
+export function revokeStreamUrl(source) {
+	if (source?.url?.startsWith('blob:')) URL.revokeObjectURL(source.url)
+}
+
+/** 只取文件大小（不读内容），失败返回 0 */
+export async function sourceSize(source) {
+	if (source instanceof Blob) return source.size
+	if (typeof source !== 'string' || !isTauri()) return 0
+	try {
+		const { stat } = await import('@tauri-apps/plugin-fs')
+		const info = await stat(source)
+		return Number(info?.size) || 0
+	} catch {
+		return 0
+	}
+}
+
 /* ------------------------------------------------------------------ *
  * 写入
  * ------------------------------------------------------------------ */

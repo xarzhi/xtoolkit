@@ -77,6 +77,11 @@ const routes = [
 						meta: { title: '视频截取', icon: 'antd:ScissorOutlined' },
 					},
 					{
+						path: 'videoFrame',
+						component: () => import('@/views/video/VideoFrame.vue'),
+						meta: { title: '视频截图', icon: 'antd:CameraOutlined' },
+					},
+					{
 						path: 'videoConvert',
 						component: () => import('@/views/video/VideoConvert.vue'),
 						meta: { title: '视频格式转换', icon: 'icon-zhuanhuan1' },

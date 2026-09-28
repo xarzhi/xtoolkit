@@ -103,8 +103,8 @@ import { computed, onUnmounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import Selector from '@/components/Selector.vue'
 import { formatBytes, stripExt } from '@/utils/image'
-import { friendlyError, readSourceBytes, saveBytesAs } from '@/utils/tauriIO'
-import { VIDEO_FILTER, createVideoElement, formatDuration, grabFrame, seekVideo } from '@/utils/video'
+import { createStreamUrl, friendlyError, revokeStreamUrl, sourceSize, saveBytesAs } from '@/utils/tauriIO'
+import { VIDEO_FILTER, createVideoElement, formatDuration, grabFrame, seekVideo, setVideoSrc } from '@/utils/video'
 import { GifBuilder } from '@/utils/gif'
 
 /** 单个 GIF 的帧数上限，避免卡死或内存爆掉 */
@@ -169,13 +169,13 @@ const handleFiles = async sources => {
 	loading.value = true
 	errorText.value = ''
 	try {
-		const bytes = await readSourceBytes(list[0])
+		const streamUrl = await createStreamUrl(list[0])
 		const name = typeof list[0] === 'string' ? list[0].split(/[\\/]/).pop() : list[0].name
-		const blobUrl = URL.createObjectURL(new Blob([bytes]))
-		const info = await createVideoElement(blobUrl)
-		if (source.value?.url) URL.revokeObjectURL(source.value.url)
+		const size = await sourceSize(list[0])
+		const info = await createVideoElement(streamUrl)
+		if (source.value?.url) revokeStreamUrl(source.value)
 		clearGif()
-		source.value = { name, url: blobUrl, size: bytes.length }
+		source.value = { name, url: streamUrl, size, path: typeof list[0] === 'string' ? list[0] : '' }
 		videoInfo.value = { width: info.videoWidth, height: info.videoHeight }
 		duration.value = Number.isFinite(info.duration) ? info.duration : 0
 		// 释放临时解码器
@@ -188,7 +188,7 @@ const handleFiles = async sources => {
 		await new Promise(resolve => {
 			requestAnimationFrame(() => {
 				if (videoRef.value) {
-					videoRef.value.src = blobUrl
+					setVideoSrc(videoRef.value, streamUrl)
 					videoRef.value.onloadeddata = () => resolve()
 					setTimeout(resolve, 1500)
 				} else resolve()
