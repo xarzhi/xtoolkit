@@ -1,4 +1,52 @@
+/* 全局 CSS 变量：布局尺寸 + 明暗主题色。
+   必须在全局作用域引入（见 main.js），写在 scoped 样式里的 :root 不会生效。 */
 :root {
 	--menu-width: 255px;
 	--top-height: 50px;
+
+	/* 主题色（浅色） */
+	--page-bg: #fafafa;
+	--panel-bg: #ffffff;
+	--panel-border: #d9d9d9;
+	--border-color: rgba(0, 0, 0, 0.08);
+	--text-color: #262626;
+	--text-color-2: rgba(0, 0, 0, 0.45);
+	--text-color-3: rgba(0, 0, 0, 0.65);
+	--top-bg-color: #ffffff;
+	--top-border-color: rgba(0, 0, 0, 0.06);
+	--icon-bg-color: rgba(0, 0, 0, 0.06);
+	--icon-bg-color-strong: rgba(0, 0, 0, 0.12);
+	--top-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+	--drop-bg: #f7f8fa;
+	--drop-border: #b0b8c1;
+	--wave-bg: #fafafa;
+	--wave-line: rgba(0, 0, 0, 0.12);
+	--wave-hover: rgba(0, 0, 0, 0.25);
+}
+
+/* 深色主题：在 <html> 上切 data-theme（见 utils/uiState.js） */
+html[data-theme='dark'] {
+	--page-bg: #141414;
+	--panel-bg: #1f1f1f;
+	--panel-border: #424242;
+	--border-color: rgba(255, 255, 255, 0.12);
+	--text-color: rgba(255, 255, 255, 0.85);
+	--text-color-2: rgba(255, 255, 255, 0.45);
+	--text-color-3: rgba(255, 255, 255, 0.65);
+	--top-bg-color: #1f1f1f;
+	--top-border-color: rgba(255, 255, 255, 0.08);
+	--icon-bg-color: rgba(255, 255, 255, 0.1);
+	--icon-bg-color-strong: rgba(255, 255, 255, 0.18);
+	--top-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+	--drop-bg: #1f1f1f;
+	--drop-border: #5a5a5a;
+	--wave-bg: #1f1f1f;
+	--wave-line: rgba(255, 255, 255, 0.18);
+	--wave-hover: rgba(255, 255, 255, 0.35);
+}
+
+html[data-theme='dark'],
+html[data-theme='dark'] body {
+	background-color: var(--page-bg);
+	color: var(--text-color);
 }

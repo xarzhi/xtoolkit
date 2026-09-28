@@ -106,6 +106,7 @@ import { message } from 'ant-design-vue'
 import { marked } from 'marked'
 import TurndownService from 'turndown'
 import { copyText, friendlyError, saveTextAs } from '@/utils/tauriIO'
+import { uiState } from '@/utils/uiState'
 
 const activeTab = ref('md2html')
 const markdown = ref('# 标题\n\n这是一段**加粗**文字，还有 `行内代码`。\n\n- 列表一\n- 列表二\n\n```js\nconsole.log(1)\n```\n')
@@ -149,9 +150,22 @@ const html = computed(() => {
 	return `<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n<title>Markdown 导出</title>\n<style>\n${DOC_STYLE}\n</style>\n</head>\n<body>\n${body}</body>\n</html>\n`
 })
 
+/** 预览跟随明暗主题（导出的 HTML 仍然是浅色正文，方便贴到别处用） */
+const previewStyle = computed(() => {
+	if (uiState.theme !== 'dark') return DOC_STYLE
+	return `${DOC_STYLE}
+html{color-scheme:dark;}
+body{background:#141414;color:#d6d6d6;}
+h1{border-bottom-color:#3a3a3a;}
+code{background:rgba(255,255,255,.1);}
+pre{background:#1f1f1f;}
+blockquote{color:#9a9a9a;border-left-color:#3a3a3a;}
+th,td{border-color:#3a3a3a;}`
+})
+
 const previewDoc = computed(() => {
 	const body = marked.parse(markdown.value || '', { gfm: mdOptions.gfm === 'gfm', breaks: mdOptions.breaks })
-	return `<!doctype html><html><head><meta charset="utf-8"><style>${DOC_STYLE}</style></head><body>${body}</body></html>`
+	return `<!doctype html><html><head><meta charset="utf-8"><style>${previewStyle.value}</style></head><body>${body}</body></html>`
 })
 
 const markdownOutput = computed(() => {
@@ -280,7 +294,7 @@ const clearAll = () => {
 		justify-content: space-between;
 		height: 30px;
 		font-weight: 600;
-		color: #262626;
+		color: var(--text-color);
 	}
 	.code-area {
 		flex: 1;
@@ -304,10 +318,10 @@ const clearAll = () => {
 	.preview {
 		flex: 0 1 38%;
 		min-height: 120px;
-		border: 1px solid #e5e7eb;
+		border: 1px solid var(--border-color);
 		border-radius: 10px;
 		overflow: hidden;
-		background: #fff;
+		background: var(--panel-bg);
 		.preview-frame {
 			width: 100%;
 			height: 100%;

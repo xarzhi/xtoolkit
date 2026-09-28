@@ -41,6 +41,7 @@ import {
 	saveTextAs,
 	writeText,
 } from '@/utils/tauriIO'
+import { toggleTheme as toggleGlobalTheme, uiState } from '@/utils/uiState'
 
 const AUTOSAVE_NAME = 'whiteboard-autosave.excalidraw'
 const AUTOSAVE_KEY = 'xtools-whiteboard-autosave'
@@ -48,7 +49,6 @@ const AUTOSAVE_KEY = 'xtools-whiteboard-autosave'
 const containerRef = ref(null)
 const api = ref(null)
 const ready = ref(false)
-const theme = ref('light')
 const mountError = ref('')
 const dragOver = ref(false)
 const storageLabel = ref('')
@@ -265,15 +265,29 @@ const confirmClear = () => {
 	})
 }
 
+// 画布主题跟随全局明暗主题（顶部栏那个按钮切换）
+const theme = computed(() => uiState.theme)
+
 const toggleTheme = () => {
-	const next = theme.value === 'dark' ? 'light' : 'dark'
-	theme.value = next
+	toggleGlobalTheme()
+}
+
+// 全局主题变化时同步给 Excalidraw（画布底色只在它还是默认值时跟着换，不覆盖自定义底色）
+const CANVAS_BG = { light: '#ffffff', dark: '#121212' }
+watch(theme, next => {
 	try {
-		api.value?.updateScene({ appState: { theme: next } })
+		const instance = api.value
+		if (!instance) return
+		const patch = { theme: next }
+		const current = String(instance.getAppState()?.viewBackgroundColor || '').toLowerCase()
+		if (!current || current === CANVAS_BG.light || current === CANVAS_BG.dark) {
+			patch.viewBackgroundColor = CANVAS_BG[next]
+		}
+		instance.updateScene({ appState: patch })
 	} catch {
 		/* 忽略 */
 	}
-}
+})
 
 const toggleAutoSave = () => {
 	autoSave.value = !autoSave.value
@@ -608,7 +622,7 @@ const renderBoard = () => {
 				},
 				theme: theme.value,
 				langCode: 'zh-CN',
-				initialData: { appState: { viewBackgroundColor: '#ffffff' } },
+				initialData: { appState: { viewBackgroundColor: CANVAS_BG[theme.value] || CANVAS_BG.light } },
 				// 每次改动都触发，用于自动保存
 				onChange: () => scheduleSave(),
 				UIOptions: {
@@ -771,8 +785,8 @@ onUnmounted(() => {
 		position: relative;
 		border-radius: 12px;
 		overflow: hidden;
-		border: 1px solid rgba(0, 0, 0, 0.08);
-		background: #fff;
+		border: 1px solid var(--border-color);
+		background: var(--panel-bg);
 		transition: box-shadow 0.2s ease;
 		// Excalidraw 需要一个有确定高度的容器
 		:deep(.excalidraw) {

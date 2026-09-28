@@ -492,7 +492,7 @@ const saveParsed = async () => {
 			margin-bottom: 8px;
 			.output-title {
 				font-weight: 600;
-				color: #262626;
+				color: var(--text-color);
 			}
 		}
 		.output-text {

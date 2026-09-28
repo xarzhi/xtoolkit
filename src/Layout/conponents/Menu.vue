@@ -8,35 +8,43 @@
 			collapsed: collapsed,
 		}"
 	>
-		<div class="logo_box" @click="toggleCollapsed">
-			<div
-				class="logo"
-				:style="{
-					marginRight: collapsed ? '0px' : '15px',
-				}"
+		<div class="menu-head" :class="{ collapsed }">
+			<a-input
+				v-if="!collapsed"
+				ref="searchRef"
+				v-model:value="keyword"
+				class="menu-search"
+				placeholder="搜索菜单"
+				allow-clear
 			>
-				<img src="/logo.png" alt="" />
+				<template #prefix>
+					<SearchOutlined />
+				</template>
+			</a-input>
+			<div v-else class="menu-search-btn" title="搜索菜单" @click="expandSearch">
+				<SearchOutlined />
 			</div>
-			<div class="title" v-if="!collapsed">XTools</div>
 		</div>
 		<div class="menu-body">
 			<a-menu
-				v-model:openKeys="openKeys"
 				v-model:selectedKeys="selectedKeys"
+				:openKeys="openKeys"
 				mode="inline"
 				:inline-collapsed="collapsed"
 				:items="menus"
 				@click="handleClick"
+				@openChange="handleOpenChange"
 				theme="light"
 			>
 				<!-- <a-menu-item v-for="item in items" :key="item.key" :title="item.title">{{ item.label }}</a-menu-item> -->
 			</a-menu>
+			<div v-if="searching && !menus.length" class="menu-empty">没有匹配的菜单</div>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { computed, reactive, watch, ref, h, onMounted } from 'vue'
+import { computed, reactive, watch, ref, nextTick, h, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { routes } from '../../router/index'
 import {
@@ -47,24 +55,27 @@ import {
 	DesktopOutlined,
 	InboxOutlined,
 	AppstoreOutlined,
+	SearchOutlined,
 } from '@ant-design/icons-vue'
 import XIcon from '@/components/XIcon.vue'
 import { toggleMenuCollapsed, uiState } from '@/utils/uiState'
-const selectedKeys = ref(['1-0'])
-const openKeys = ref(['0-0'])
+const selectedKeys = ref([])
+const openKeys = ref([])
 // 折叠状态与顶部栏共用（点顶部栏 logo 也能收起/展开）
 const collapsed = computed(() => uiState.menuCollapsed)
 const menuWidth = computed(() => (uiState.menuCollapsed ? 80 : 255))
 const router = useRouter()
 const route = useRoute()
-const menus = ref([])
+// 全量菜单（生成一次），menus 是「搜索过滤后」真正渲染的菜单
+const allMenus = ref([])
+const keyword = ref('')
+const searchRef = ref(null)
+const searching = computed(() => !!keyword.value.trim())
 
 onMounted(() => {
 	const [realRoutes] = routes
-	menus.value = generatorMenu(realRoutes.children)
+	allMenus.value = generatorMenu(realRoutes.children)
 	syncMenuFromRoute()
-
-	// console.log(menus.value)
 })
 
 const generatorMenu = (menu, pIndex = 0, parentPath = '') => {
@@ -73,7 +84,9 @@ const generatorMenu = (menu, pIndex = 0, parentPath = '') => {
 		const fullPath = '/' + parentPath ? `${parentPath}/${item.path}`.replace(/\/+/g, '/') : item.path
 		const obj = {
 			path: fullPath,
-			key: pIndex + '-' + index,
+			// 用完整路径当 key：原来的 1-0 / 1-1 在不同分组之间会重复，
+			// 展开、选中会互相串台（手风琴效果也就不可靠了）
+			key: fullPath,
 			title: item.meta.title,
 			label: item.meta.title,
 			icon: () => h(XIcon, { icon: item.meta.icon }),
@@ -86,18 +99,65 @@ const generatorMenu = (menu, pIndex = 0, parentPath = '') => {
 	})
 }
 
+/** 只留一级：把菜单摊平，顺便记住它属于哪个分组（搜索用） */
+const flattenMenu = (list, group = '', acc = []) => {
+	for (const item of list) {
+		if (item.children && item.children.length) {
+			flattenMenu(item.children, item.title, acc)
+		} else {
+			acc.push({ item, group })
+		}
+	}
+	return acc
+}
+
+/** 搜索时把命中的菜单项平铺展示，其余全部过滤掉 */
+const menus = computed(() => {
+	const kw = keyword.value.trim().toLowerCase()
+	if (!kw) return allMenus.value
+	return flattenMenu(allMenus.value)
+		.filter(({ item, group }) => `${group} ${item.title}`.toLowerCase().includes(kw))
+		.map(({ item, group }) => ({
+			...item,
+			label: group ? `${group} / ${item.title}` : item.title,
+		}))
+})
+
 const syncMenuFromRoute = () => {
-	const current = findRecursive(menus.value, item => item.path === route.fullPath)
+	const current = findRecursive(allMenus.value, item => item.path === route.fullPath)
 	if (current) {
-		setActive(menus.value, current.item.key)
+		setActive(allMenus.value, current.item.key)
 		selectedKeys.value = [current.item.key]
-		if (current.parent) openKeys.value = [current.parent.key]
+		// 搜索状态下菜单是平铺的，不去动展开项
+		if (current.parent && !searching.value) openKeys.value = [current.parent.key]
 	}
 }
 
+/** 手风琴：同时只展开一个一级菜单 */
+const handleOpenChange = keys => {
+	const opened = keys.find(key => !openKeys.value.includes(key))
+	openKeys.value = opened ? [opened] : keys.slice(-1)
+}
+
+/** 搜索框在折叠状态下只显示一个图标，点了先展开菜单再聚焦 */
+const expandSearch = async () => {
+	if (uiState.menuCollapsed) toggleMenuCollapsed()
+	await nextTick()
+	const input = searchRef.value?.focus ? searchRef.value : searchRef.value?.$el?.querySelector('input')
+	if (input?.focus) input.focus()
+}
+
+// 清空搜索框后菜单恢复全部显示，并回到当前页面所在分组
+watch(keyword, () => {
+	if (!searching.value) {
+		openKeys.value = []
+		syncMenuFromRoute()
+	}
+})
+
 const setActive = (arr, key) => {
 	if (!arr.length) return
-	const current = findRecursive(menus.value, item => item.key === key)
+	const current = findRecursive(allMenus.value, item => item.key === key)
 	const parentKey = current?.parent?.key
 	arr.forEach(item => {
 		item.icon = () =>
@@ -135,9 +195,6 @@ watch(
 const handleClick = ({ item }) => {
 	router.push(item.path)
 }
-const toggleCollapsed = () => {
-	toggleMenuCollapsed()
-}
 
 // watch(
 // 	route,
@@ -164,11 +221,45 @@ const toggleCollapsed = () => {
 	// background-color: #001529;
 	user-select: none;
 	transition: width 0.3s cubic-bezier(0.2, 0, 0, 1) 0s;
-	// 让 logo 固定、下面的菜单区域可以滚动
+	// 让搜索框固定、下面的菜单区域可以滚动
 	height: 100%;
 	display: flex;
 	flex-flow: column;
 	overflow: hidden;
+
+	.menu-head {
+		flex: none;
+		height: var(--top-height);
+		display: flex;
+		align-items: center;
+		box-sizing: border-box;
+		padding: 0 10px;
+		user-select: none;
+
+		&.collapsed {
+			justify-content: center;
+			padding: 0;
+		}
+
+		.menu-search {
+			width: 100%;
+		}
+
+		.menu-search-btn {
+			width: 36px;
+			height: 36px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			border-radius: 6px;
+			cursor: pointer;
+			color: var(--text-color);
+			transition: background-color 0.15s;
+			&:hover {
+				background-color: var(--icon-bg-color);
+			}
+		}
+	}
 
 	.menu-body {
 		flex: 1;
@@ -186,52 +277,10 @@ const toggleCollapsed = () => {
 		:deep(.ant-menu) {
 			border-inline-end: none;
 		}
-	}
-
-	&.collapsed {
-		.logo_box {
-			justify-content: center;
-			padding-left: 0;
-			// .fade-enter-active,
-			// .fade-leave-active {
-			// 	transition: opacity 0.1s;
-			// }
-			// .fade-enter-from,
-			// .fade-leave-to {
-			// 	opacity: 0;
-			// }
-		}
-	}
-	.logo_box {
-		width: 100%;
-		height: var(--top-height);
-		flex: none;
-		user-select: none;
-		display: flex;
-		align-items: center;
-		box-sizing: border-box;
-		cursor: pointer;
-		padding-left: 28px;
-
-		.logo {
-			width: 40px;
-			height: 100%;
-			overflow: hidden;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			img {
-				border-radius: 5px;
-				width: 40px;
-				height: 40px;
-			}
-		}
-		.title {
-			font-weight: 600;
-			color: #333;
-			opacity: 1;
-			white-space: nowrap;
-			transition: opacity 0.1s;
+		.menu-empty {
+			padding: 16px 18px;
+			font-size: 13px;
+			color: var(--text-color-2);
 		}
 	}
 }

@@ -382,7 +382,7 @@ onUnmounted(() => {
 			align-items: baseline;
 			justify-content: space-between;
 			font-weight: 600;
-			color: #262626;
+			color: var(--text-color);
 			margin-bottom: 8px;
 		}
 		img {
@@ -406,7 +406,7 @@ onUnmounted(() => {
 	.block {
 		.block-title {
 			font-weight: 600;
-			color: #262626;
+			color: var(--text-color);
 			margin-bottom: 10px;
 		}
 		.grid {

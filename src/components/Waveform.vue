@@ -9,8 +9,9 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { formatDuration } from '@/utils/video'
+import { uiState } from '@/utils/uiState'
 
 const props = defineProps({
 	peaks: { type: Object, default: null },
@@ -26,6 +27,18 @@ const emit = defineEmits(['update:start', 'update:end', 'seek'])
 const canvasRef = ref(null)
 const hover = ref(null)
 let dragging = null
+
+/** canvas 里画不了 CSS 变量，按主题取色 */
+const waveColors = computed(() => {
+	void uiState.theme // 主题变了要重绘
+	const css = typeof document === 'undefined' ? null : getComputedStyle(document.documentElement)
+	const pick = (name, fallback) => css?.getPropertyValue(name).trim() || fallback
+	return {
+		bg: pick('--wave-bg', '#fafafa'),
+		line: pick('--wave-line', 'rgba(0, 0, 0, 0.12)'),
+		hover: pick('--wave-hover', 'rgba(0, 0, 0, 0.25)'),
+	}
+})
 
 const formatTime = seconds => {
 	const value = Number.isFinite(seconds) ? seconds : 0
@@ -51,7 +64,7 @@ const draw = () => {
 	const endX = (props.end / total) * width
 
 	// 背景
-	ctx.fillStyle = '#fafafa'
+	ctx.fillStyle = waveColors.value.bg
 	ctx.fillRect(0, 0, width, props.height)
 
 	// 选中区域高亮
@@ -73,7 +86,7 @@ const draw = () => {
 	}
 
 	// 中线
-	ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)'
+	ctx.strokeStyle = waveColors.value.line
 	ctx.beginPath()
 	ctx.moveTo(0, mid)
 	ctx.lineTo(width, mid)
@@ -103,7 +116,7 @@ const draw = () => {
 	// 悬停时间
 	if (hover.value != null) {
 		const x = (hover.value / total) * width
-		ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)'
+		ctx.strokeStyle = waveColors.value.hover
 		ctx.beginPath()
 		ctx.moveTo(x, 0)
 		ctx.lineTo(x, props.height)
@@ -162,7 +175,7 @@ const onHover = event => {
 }
 
 watch(
-	() => [props.peaks, props.start, props.end, props.playhead, props.duration],
+	() => [props.peaks, props.start, props.end, props.playhead, props.duration, uiState.theme],
 	() => draw()
 )
 
@@ -187,7 +200,7 @@ onUnmounted(() => {
 		width: 100%;
 		border-radius: 6px;
 		cursor: ew-resize;
-		background: #fafafa;
+		background: var(--wave-bg);
 	}
 	.scale {
 		display: flex;

@@ -13,7 +13,7 @@
  */
 
 import { spawn } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -34,6 +34,11 @@ const CUSTOM_PROBE = process.env.CHECK_EXPR_FILE
  *   CHECK_SERVE_FILE="C:\\path\\scene.excalidraw" CHECK_EXPR="..." node scripts/check-pages.mjs /whiteboard
  */
 const SERVE_FILE = process.env.CHECK_SERVE_FILE || ''
+/**
+ * 可选：把每个页面截图存到该目录，用来肉眼检查深色主题之类的视觉效果。
+ *   CHECK_SHOT="%TEMP%\\shots" node scripts/check-pages.mjs /pictures/imgTransform
+ */
+const SHOT_DIR = process.env.CHECK_SHOT || ''
 
 const DEFAULT_ROUTES = [
 	'/pictures/imgTransform',
@@ -315,6 +320,19 @@ try {
 			)
 		}
 		if (hasProblem || blank) exitCode = 1
+
+		if (SHOT_DIR) {
+			try {
+				mkdirSync(SHOT_DIR, { recursive: true })
+				const shot = await cdp.send('Page.captureScreenshot', { format: 'png' })
+				const name = route.replace(/^\/+/, '').replace(/[^\w.-]+/g, '_') || 'index'
+				const file = join(SHOT_DIR, `${name}.png`)
+				writeFileSync(file, Buffer.from(shot.data, 'base64'))
+				console.log(`        截图: ${file}`)
+			} catch (err) {
+				console.log(`        截图失败: ${err.message}`)
+			}
+		}
 
 		for (const item of problems) console.log(`        未捕获异常: ${item}`)
 		for (const item of consoleErrors) console.log(`        控制台错误: ${item}`)

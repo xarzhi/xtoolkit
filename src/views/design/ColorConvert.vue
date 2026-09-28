@@ -220,7 +220,7 @@ const reset = () => {
 		flex: 1;
 		.block-title {
 			font-weight: 600;
-			color: #262626;
+			color: var(--text-color);
 			margin-bottom: 10px;
 		}
 	}
@@ -233,7 +233,7 @@ const reset = () => {
 			width: 56px;
 			height: 40px;
 			padding: 0;
-			border: 1px solid #d9d9d9;
+			border: 1px solid var(--panel-border);
 			border-radius: 8px;
 			background: none;
 			cursor: pointer;
@@ -247,7 +247,7 @@ const reset = () => {
 			justify-content: center;
 			font-family: Consolas, Monaco, monospace;
 			font-size: 13px;
-			border: 1px solid rgba(0, 0, 0, 0.08);
+			border: 1px solid var(--border-color);
 		}
 	}
 	.alpha-row {
@@ -267,7 +267,7 @@ const reset = () => {
 			.name {
 				width: 74px;
 				font-size: 13px;
-				color: rgba(0, 0, 0, 0.65);
+				color: var(--text-color-3);
 			}
 		}
 	}
@@ -280,7 +280,7 @@ const reset = () => {
 			height: 34px;
 			padding: 0 10px;
 			border-radius: 8px;
-			border: 1px solid rgba(0, 0, 0, 0.08);
+			border: 1px solid var(--border-color);
 			font-family: Consolas, Monaco, monospace;
 			font-size: 12px;
 			cursor: pointer;

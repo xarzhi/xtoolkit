@@ -85,7 +85,8 @@ const props = defineProps({
 	},
 	color: {
 		type: String,
-		default: '#333',
+		// currentColor：跟随 antd 菜单文字颜色，明暗主题都不用单独适配
+		default: 'currentColor',
 	},
 	fontSize: {
 		type: String,

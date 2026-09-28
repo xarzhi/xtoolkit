@@ -40,7 +40,7 @@ import Top from './conponents/Top.vue'
 		overflow: hidden;
 		width: 100%;
 		flex: 1;
-		background-color: #fafafa;
+		background-color: var(--page-bg);
 		box-sizing: border-box;
 		.router-content {
 			overflow: hidden;

@@ -17,8 +17,25 @@
 		</div>
 
 		<div class="right">
-			<div class="titlebar-button" title="全屏切换" @click.stop="toggleFullscreen">
-				<i class="iconfont icon-fullscreen"></i>
+			<div
+				class="titlebar-button theme"
+				:title="isDark ? '切换到浅色主题' : '切换到深色主题'"
+				@click.stop="toggleTheme"
+			>
+				<!-- 太阳（当前是深色，点了变浅色） -->
+				<svg v-if="isDark" viewBox="0 0 1024 1024" width="17" height="17" aria-hidden="true">
+					<path
+						fill="currentColor"
+						d="M512 704a192 192 0 1 0 0-384 192 192 0 0 0 0 384zm0 64a256 256 0 1 1 0-512 256 256 0 0 1 0 512zm0-640a32 32 0 0 1 32 32v64a32 32 0 1 1-64 0V160a32 32 0 0 1 32-32zm0 704a32 32 0 0 1 32 32v64a32 32 0 1 1-64 0v-64a32 32 0 0 1 32-32zM192 512a32 32 0 0 1 32-32h64a32 32 0 1 1 0 64h-64a32 32 0 0 1-32-32zm640 0a32 32 0 0 1 32-32h64a32 32 0 1 1 0 64h-64a32 32 0 0 1-32-32zM285.8 285.8a32 32 0 0 1 45.3 0l45.2 45.2a32 32 0 0 1-45.2 45.3l-45.3-45.3a32 32 0 0 1 0-45.2zm362 362a32 32 0 0 1 45.3 0l45.2 45.2a32 32 0 0 1-45.2 45.3l-45.3-45.3a32 32 0 0 1 0-45.2zm90.5-362a32 32 0 0 1 0 45.2l-45.2 45.3a32 32 0 0 1-45.3-45.3l45.3-45.2a32 32 0 0 1 45.2 0zm-362 362a32 32 0 0 1 0 45.2l-45.2 45.3a32 32 0 0 1-45.3-45.3l45.3-45.2a32 32 0 0 1 45.2 0z"
+					/>
+				</svg>
+				<!-- 月亮（当前是浅色，点了变深色） -->
+				<svg v-else viewBox="0 0 1024 1024" width="16" height="16" aria-hidden="true">
+					<path
+						fill="currentColor"
+						d="M512 128a384 384 0 1 0 384 384c0-17-1-34-3-50a32 32 0 0 0-52-22 224 224 0 0 1-336-256 32 32 0 0 0-41-41c-18-9-37-15-57-19a32 32 0 0 0-38 38c-4 20-10 39-19 56a32 32 0 0 0 8 40A224 224 0 0 1 512 128z"
+					/>
+				</svg>
 			</div>
 			<div class="titlebar-button" id="titlebar-minimize" title="最小化" @click.stop="minimize">
 				<i class="iconfont icon-minimize"></i>
@@ -36,9 +53,10 @@
 <script setup>
 import { computed } from 'vue'
 import { isTauri } from '@/utils/tauriIO'
-import { toggleMenuCollapsed, uiState } from '@/utils/uiState'
+import { toggleMenuCollapsed, toggleTheme, uiState } from '@/utils/uiState'
 
 const collapsed = computed(() => uiState.menuCollapsed)
+const isDark = computed(() => uiState.theme === 'dark')
 
 /** 浏览器里（pnpm dev）没有 Tauri API，统一走 withWindow 兜底 */
 const withWindow = async action => {
@@ -54,18 +72,12 @@ const withWindow = async action => {
 const minimize = () => withWindow(w => w.minimize())
 const toggleMaximize = () => withWindow(w => w.toggleMaximize())
 const close = () => withWindow(w => w.close())
-
-const toggleFullscreen = () =>
-	withWindow(async w => {
-		const full = await w.isFullscreen()
-		await w.setFullscreen(!full)
-	})
 </script>
 
 <style lang="scss" scoped>
 .top {
 	flex: none;
-	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+	box-shadow: var(--top-shadow);
 	position: relative;
 	z-index: 10;
 	width: 100%;
@@ -74,8 +86,8 @@ const toggleFullscreen = () =>
 
 .topbar {
 	height: var(--top-height);
-	background: #fff;
-	border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+	background: var(--top-bg-color);
+	border-bottom: 1px solid var(--top-border-color);
 	user-select: none;
 	display: flex;
 	justify-content: space-between;
@@ -108,7 +120,7 @@ const toggleFullscreen = () =>
 				height: 26px;
 			}
 			&:hover {
-				background-color: rgba(0, 0, 0, 0.06);
+				background-color: var(--icon-bg-color);
 			}
 			&:active {
 				transform: scale(0.96);
@@ -117,7 +129,7 @@ const toggleFullscreen = () =>
 		.title {
 			font-size: 14px;
 			font-weight: 600;
-			color: #333;
+			color: var(--text-color);
 			cursor: pointer;
 			white-space: nowrap;
 		}
@@ -139,14 +151,17 @@ const toggleFullscreen = () =>
 	cursor: pointer;
 	transition: background-color 0.15s;
 	i {
-		color: #555;
+		color: var(--text-color);
 		font-size: 15px;
 	}
+	svg {
+		color: var(--text-color);
+	}
 	&:hover {
-		background: rgba(0, 0, 0, 0.06);
+		background: var(--icon-bg-color);
 	}
 	&:active {
-		background: rgba(0, 0, 0, 0.12);
+		background: var(--icon-bg-color-strong);
 	}
 	&.close:hover {
 		background: #e81123;

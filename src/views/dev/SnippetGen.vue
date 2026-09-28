@@ -256,7 +256,7 @@ const writeToVscode = async () => {
 		justify-content: space-between;
 		height: 28px;
 		font-weight: 600;
-		color: #262626;
+		color: var(--text-color);
 		.ok {
 			color: #52c41a;
 		}

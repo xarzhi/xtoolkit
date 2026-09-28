@@ -321,7 +321,7 @@ watch([input, indent, autoFormat], () => {
 		justify-content: space-between;
 		height: 34px;
 		font-weight: 500;
-		color: #262626;
+		color: var(--text-color);
 	}
 	.right-tabs {
 		flex: 1;
@@ -349,8 +349,8 @@ watch([input, indent, autoFormat], () => {
 		min-height: 0;
 		overflow: auto;
 		padding: 8px 12px 12px;
-		background: #fff;
-		border: 1px solid #d9d9d9;
+		background: var(--panel-bg);
+		border: 1px solid var(--panel-border);
 		border-radius: 8px;
 	}
 }

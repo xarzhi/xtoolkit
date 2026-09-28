@@ -447,7 +447,7 @@ const exportAll = async () => {
 	}
 	.label {
 		font-size: 13px;
-		color: rgba(0, 0, 0, 0.65);
+		color: var(--text-color-3);
 		white-space: nowrap;
 	}
 	// 滑块的刻度标签会占一行，留出空间避免和下一行挤压

@@ -288,7 +288,7 @@ const formatDuration = seconds => {
 	}
 	.block-title {
 		font-weight: 600;
-		color: #262626;
+		color: var(--text-color);
 		margin-bottom: 10px;
 	}
 	.preview {
@@ -320,7 +320,7 @@ const formatDuration = seconds => {
 		.label {
 			width: 46px;
 			font-size: 13px;
-			color: rgba(0, 0, 0, 0.65);
+			color: var(--text-color-3);
 		}
 	}
 	.switch-item {

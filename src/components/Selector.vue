@@ -133,9 +133,9 @@ const isInside = (point, rect) => {
 	width: 100%;
 	padding: 36px 24px;
 	border-radius: 14px;
-	border: 2.5px dashed #b0b8c1;
-	background: #f7f8fa;
-	color: #333;
+	border: 2.5px dashed var(--drop-border);
+	background: var(--drop-bg);
+	color: var(--text-color);
 	cursor: pointer;
 	user-select: none;
 	transition:
@@ -161,7 +161,7 @@ const isInside = (point, rect) => {
 	.desc {
 		margin-top: 10px;
 		font-size: 14px;
-		color: rgba(0, 0, 0, 0.45);
+		color: var(--text-color-2);
 	}
 }
 </style>

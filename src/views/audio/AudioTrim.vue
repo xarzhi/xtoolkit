@@ -315,7 +315,7 @@ onUnmounted(stopAll)
 	}
 	.block-title {
 		font-weight: 600;
-		color: #262626;
+		color: var(--text-color);
 		margin-bottom: 10px;
 	}
 	.range-info {
@@ -324,7 +324,7 @@ onUnmounted(stopAll)
 		flex-wrap: wrap;
 		margin-top: 10px;
 		font-size: 12px;
-		color: rgba(0, 0, 0, 0.6);
+		color: var(--text-color-3);
 		b {
 			color: #1677ff;
 		}

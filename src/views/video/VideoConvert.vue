@@ -249,7 +249,7 @@ onUnmounted(clearResult)
 			align-items: baseline;
 			justify-content: space-between;
 			font-weight: 600;
-			color: #262626;
+			color: var(--text-color);
 			margin-bottom: 8px;
 		}
 	}
@@ -263,7 +263,7 @@ onUnmounted(clearResult)
 	.block {
 		.block-title {
 			font-weight: 600;
-			color: #262626;
+			color: var(--text-color);
 			margin-bottom: 10px;
 		}
 		.grid {
@@ -294,7 +294,7 @@ onUnmounted(clearResult)
 		.name {
 			width: 62px;
 			font-size: 13px;
-			color: rgba(0, 0, 0, 0.65);
+			color: var(--text-color-3);
 			white-space: nowrap;
 		}
 		.slider {

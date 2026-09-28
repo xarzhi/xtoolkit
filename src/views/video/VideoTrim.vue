@@ -336,7 +336,7 @@ onUnmounted(() => {
 			display: flex;
 			justify-content: space-between;
 			font-size: 12px;
-			color: rgba(0, 0, 0, 0.6);
+			color: var(--text-color-3);
 			b {
 				color: #1677ff;
 			}
@@ -349,7 +349,7 @@ onUnmounted(() => {
 			align-items: baseline;
 			justify-content: space-between;
 			font-weight: 600;
-			color: #262626;
+			color: var(--text-color);
 			margin-bottom: 8px;
 		}
 	}
@@ -363,7 +363,7 @@ onUnmounted(() => {
 	.block {
 		.block-title {
 			font-weight: 600;
-			color: #262626;
+			color: var(--text-color);
 			margin-bottom: 10px;
 		}
 		.grid {

@@ -7,7 +7,7 @@
 
 		<div class="tool-content">
 			<div class="layout">
-				<div class="stage">
+				<div class="stage" :style="{ background: settings.background }">
 					<div class="canvas-wrap" ref="containerRef"></div>
 					<div v-if="!modelLoaded && !loading" class="drop-tip">
 						<div class="big">{{ errorText ? '加载失败' : '还没有模型' }}</div>
@@ -88,13 +88,14 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, reactive, ref, shallowRef } from 'vue'
+import { onMounted, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { formatBytes } from '@/utils/image'
+import { uiState } from '@/utils/uiState'
 import { defaultOutputDir, friendlyError, isTauri, openFiles, pickDirectory, readSourceBytes, saveBytesAs } from '@/utils/tauriIO'
 
 const containerRef = ref(null)
@@ -104,7 +105,15 @@ const errorText = ref('')
 const hintText = ref('')
 const animations = ref([])
 const activeAnimation = ref(0)
-const settings = reactive({ wireframe: false, grid: true, autoRotate: false, background: '#f5f6f8', playAnimation: true })
+/** 视口底色默认值：跟随明暗主题，用户自己改过就不再动 */
+const DEFAULT_STAGE_BG = { light: '#f5f6f8', dark: '#1a1a1a' }
+const settings = reactive({
+	wireframe: false,
+	grid: true,
+	autoRotate: false,
+	background: DEFAULT_STAGE_BG[uiState.theme] || DEFAULT_STAGE_BG.light,
+	playAnimation: true,
+})
 const info = reactive({ name: '', size: 0, meshes: 0, materials: 0, triangles: 0, dimensions: '-', animations: 0 })
 
 // three 的对象不需要响应式
@@ -230,6 +239,17 @@ const applyBackground = event => {
 	settings.background = event.target.value
 	if (scene.value) scene.value.background = new THREE.Color(settings.background)
 }
+
+// 明暗主题切换时，如果底色还是默认值就跟着换（自己挑过颜色则保留）
+watch(
+	() => uiState.theme,
+	next => {
+		const current = String(settings.background || '').toLowerCase()
+		if (current && current !== DEFAULT_STAGE_BG.light && current !== DEFAULT_STAGE_BG.dark) return
+		settings.background = DEFAULT_STAGE_BG[next] || DEFAULT_STAGE_BG.light
+		if (scene.value) scene.value.background = new THREE.Color(settings.background)
+	}
+)
 
 const frameModel = model => {
 	const box = new THREE.Box3().setFromObject(model)
@@ -505,8 +525,8 @@ onUnmounted(() => {
 		position: relative;
 		border-radius: 12px;
 		overflow: hidden;
-		border: 1px solid rgba(0, 0, 0, 0.08);
-		background: #f5f6f8;
+		border: 1px solid var(--border-color);
+		// 底色由 settings.background 内联控制（跟随明暗主题，也可以自己挑颜色）
 	}
 	.canvas-wrap {
 		width: 100%;
@@ -531,7 +551,7 @@ onUnmounted(() => {
 		.big {
 			font-size: 15px;
 			font-weight: 600;
-			color: rgba(0, 0, 0, 0.65);
+			color: var(--text-color-3);
 		}
 	}
 	.loading {
@@ -552,7 +572,7 @@ onUnmounted(() => {
 	}
 	.block-title {
 		font-weight: 600;
-		color: #262626;
+		color: var(--text-color);
 		margin-bottom: 10px;
 	}
 	.switch-item {
@@ -569,7 +589,7 @@ onUnmounted(() => {
 			width: 44px;
 			height: 30px;
 			padding: 0;
-			border: 1px solid #d9d9d9;
+			border: 1px solid var(--panel-border);
 			border-radius: 6px;
 			background: none;
 			cursor: pointer;

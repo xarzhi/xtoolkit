@@ -522,7 +522,7 @@ const reset = () => {
 	.block {
 		.block-title {
 			font-weight: 600;
-			color: #262626;
+			color: var(--text-color);
 			margin-bottom: 10px;
 		}
 		.grid {
@@ -555,7 +555,7 @@ const reset = () => {
 	}
 	.label {
 		font-size: 13px;
-		color: rgba(0, 0, 0, 0.65);
+		color: var(--text-color-3);
 	}
 }
 </style>

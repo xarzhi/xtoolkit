@@ -378,9 +378,9 @@ const reset = () => {
 		.slice {
 			position: relative;
 			padding: 4px;
-			border: 1px solid rgba(0, 0, 0, 0.08);
+			border: 1px solid var(--border-color);
 			border-radius: 8px;
-			background: #fff;
+			background: var(--panel-bg);
 			cursor: pointer;
 			transition: all 0.2s ease;
 			line-height: 0;
