@@ -2,7 +2,7 @@
    必须在全局作用域引入（见 main.js），写在 scoped 样式里的 :root 不会生效。 */
 :root {
 	--menu-width: 255px;
-	--top-height: 50px;
+	--top-height: 40px;
 
 	/* 主题色（浅色） */
 	--page-bg: #fafafa;
