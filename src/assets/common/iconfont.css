@@ -1,0 +1,88 @@
+@font-face {
+  /* 通用图标（明暗主题/窗口按钮/箭头等），原来的项目 id 5239074。
+     字体族名改成 xtools-common，避免和 assets/iconfont 那套同名互相覆盖。 */
+  font-family: "xtools-common";
+  src: url('iconfont.woff2?t=1791092408268') format('woff2'),
+       url('iconfont.woff?t=1791092408268') format('woff'),
+       url('iconfont.ttf?t=1791092408268') format('truetype');
+}
+
+/* 这套图标的推荐写法：<i class="iconfont-common icon-light"></i> */
+.iconfont-common {
+  font-family: "xtools-common" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 兼容 <i class="iconfont icon-light"></i> 的老写法：
+   .iconfont.icon-x 比 .iconfont 优先级高，所以不管两份 css 谁先加载，
+   这几个图标都会用 common 字体，不会串到另一套字体上。 */
+.iconfont.icon-light,
+.iconfont.icon-dark,
+.iconfont.icon-fullscreen,
+.iconfont.icon-up-arrow,
+.iconfont.icon-down-arrow,
+.iconfont.icon-add,
+.iconfont.icon-minimize,
+.iconfont.icon-close,
+.iconfont.icon-maximize,
+.iconfont.icon-setting,
+.iconfont.icon-right-arrow,
+.iconfont.icon-left-arrow {
+  font-family: "xtools-common" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-light:before {
+  content: "\e61b";
+}
+
+.icon-dark:before {
+  content: "\e724";
+}
+
+.icon-fullscreen:before {
+  content: "\e63f";
+}
+
+.icon-up-arrow:before {
+  content: "\e642";
+}
+
+.icon-down-arrow:before {
+  content: "\e643";
+}
+
+.icon-add:before {
+  content: "\e6a1";
+}
+
+.icon-minimize:before {
+  content: "\e711";
+}
+
+.icon-close:before {
+  content: "\e609";
+}
+
+.icon-maximize:before {
+  content: "\e655";
+}
+
+.icon-setting:before {
+  content: "\e611";
+}
+
+.icon-right-arrow:before {
+  content: "\eca7";
+}
+
+.icon-left-arrow:before {
+  content: "\eca8";
+}
+
