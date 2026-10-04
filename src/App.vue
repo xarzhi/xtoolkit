@@ -25,6 +25,12 @@ dayjs.locale('zh-cn')
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/css/reset.scss';
-@import '@/assets/css/vars.css';
+/* reset.scss 和 vars.css 都改到 main.js 里全局引入了。
+   原因：这里是 scoped，Vue 会给每条选择器补上 [data-v-xxx]，
+   于是 `html, body, #app { height: 100vh; overflow: hidden }` 会变成
+   `html[data-v-xxx], body[data-v-xxx], #app[data-v-xxx]`——这三个元素身上
+   根本没有 data-v 属性，规则永远不生效（:root 变量同理）。 */
+
+// @import '@/assets/iconfont/iconfont.css';
+// @import '@/assets/common/iconfont.css';
 </style>
