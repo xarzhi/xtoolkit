@@ -3,16 +3,11 @@
 	     这里不要再绑 @dblclick，否则会与内置行为互相抵消 -->
 	<div class="topbar top" data-tauri-drag-region>
 		<div class="left">
-			<div class="logo_box" v-if="!collapsed">
+			<div class="logo_box">
 				<div class="logo" @click.stop="toggleMenuCollapsed">
 					<img src="/logo.png" alt="" />
 				</div>
 				<div class="title" @click.stop="toggleMenuCollapsed">XToolKit</div>
-			</div>
-			<div class="logo_box collapsed" v-else>
-				<div class="logo" @click.stop="toggleMenuCollapsed" title="展开菜单">
-					<img src="/logo.png" alt="" />
-				</div>
 			</div>
 		</div>
 
@@ -23,12 +18,10 @@
 				@click.stop="toggleTheme"
 			>
 				<!-- 太阳（当前是深色，点了变浅色） -->
-					<i v-if="isDark" class="iconfont icon-light"></i>
-					<i v-else class="iconfont icon-dark"></i>
+				<i v-if="isDark" class="iconfont icon-light"></i>
+				<i v-else class="iconfont icon-dark"></i>
 
-				
 				<!-- 月亮（当前是浅色，点了变深色） -->
-				
 			</div>
 			<div class="titlebar-button" id="titlebar-minimize" title="最小化" @click.stop="minimize">
 				<i class="iconfont icon-minimize"></i>
