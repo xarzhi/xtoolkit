@@ -77,6 +77,81 @@ export function autoBackgroundMask(sourceData, mask, width, height, { tolerance 
 	return removed
 }
 
+/**
+ * 自动去背景（连通版）：只抠掉「与画面四边连通、且颜色接近四角背景色」的区域。
+ *
+ * 和上面的 autoBackgroundMask 相比，这个不会误删画面内部与背景同色的东西
+ * （白衬衫 vs 白底、浅色墙面里的白衣服等），证件照换底基本只能用这个版本。
+ *
+ * bottomInset：底边中间这段不作为背景种子。人像照里肩膀几乎总是压在底边中段，
+ * 白衬衫/白外套一直延伸到画面底部，如果整条底边都当种子，衣服会被当成背景一起抠掉。
+ * 默认只取底边左右各 20% 宽度播种。
+ */
+export function autoBackgroundMaskByEdge(
+	sourceData,
+	mask,
+	width,
+	height,
+	{ tolerance = 14, block = 5, bottomInset = 0.2 } = {},
+) {
+	const threshold = toleranceToThreshold(tolerance)
+	const corners = sampleCornerColors(sourceData, width, height, block)
+	const total = width * height
+
+	const isBackgroundColor = p => {
+		const i = p * 4
+		const r = sourceData[i]
+		const g = sourceData[i + 1]
+		const b = sourceData[i + 2]
+		for (const corner of corners) {
+			if (colorDistance(r, g, b, corner[0], corner[1], corner[2]) <= threshold) return true
+		}
+		return false
+	}
+
+	const queued = new Uint8Array(total)
+	const stack = new Int32Array(total)
+	let top = 0
+	let changed = 0
+
+	// 入队即标记，保证每个像素最多进栈一次，栈容量取像素总数即可
+	const push = p => {
+		if (p < 0 || p >= total || queued[p]) return
+		queued[p] = 1
+		stack[top++] = p
+	}
+
+	// 上边整条
+	for (let x = 0; x < width; x += 1) push(x)
+	// 左右两边整条
+	for (let y = 0; y < height; y += 1) {
+		push(y * width)
+		push(y * width + width - 1)
+	}
+	// 底边只取两端，中间留给人物的肩膀
+	const inset = Math.max(1, Math.round(width * Math.max(0, Math.min(0.45, bottomInset))))
+	for (let x = 0; x < inset; x += 1) {
+		push((height - 1) * width + x)
+		push((height - 1) * width + width - 1 - x)
+	}
+
+	while (top > 0) {
+		const p = stack[--top]
+		if (!isBackgroundColor(p)) continue
+		if (mask[p] !== 0) {
+			mask[p] = 0
+			changed += 1
+		}
+		const px = p % width
+		const py = (p - px) / width
+		if (px > 0) push(p - 1)
+		if (px < width - 1) push(p + 1)
+		if (py > 0) push(p - width)
+		if (py < height - 1) push(p + width)
+	}
+	return changed
+}
+
 /** 魔棒：从点击处做连通区域填充（颜色接近种子点的一整片） */
 export function floodFillMask(sourceData, mask, width, height, { x, y, tolerance = 12, value = 0 } = {}) {
 	const sx = Math.round(x)

@@ -3,6 +3,8 @@
  * 说明：除依赖 DOM/Canvas 的函数外，均为纯函数，可在 Node 中单独测试。
  */
 
+import { mapFrameToIndices, medianCutPalette } from './gif'
+
 /** 可识别的图片扩展名 */
 export const IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'ico', 'gif', 'svg', 'avif']
 
@@ -613,10 +615,14 @@ export async function compressToTargetSize(img, targetBytes, { format = 'jpg', m
 /**
  * 图片转换主入口
  * @param {Uint8Array} bytes 源文件字节
- * @param {{ format?: string, quality?: number, maxSize?: number, background?: string|null, sourceMime?: string }} options
+ * @param {{ format?: string, quality?: number, maxSize?: number, background?: string|null, sourceMime?: string, icoSizes?: number[]|null }} options
+ *        icoSizes：ICO 要包含的尺寸（16 / 32 / 48 ...），不传则按原图能容纳的尺寸自动生成
  * @returns {Promise<{ bytes: Uint8Array, format: string, mime: string, width: number, height: number, blobUrl: string }>}
  */
-export async function convertImage(bytes, { format = 'png', quality = 0.92, maxSize = 0, background = null, sourceMime } = {}) {
+export async function convertImage(
+	bytes,
+	{ format = 'png', quality = 0.92, maxSize = 0, background = null, sourceMime, icoSizes = null } = {},
+) {
 	const fmt = getOutputFormat(format)
 	const mime = sourceMime || sniffMime(bytes)
 	const { img, url } = await decodeImageBytes(bytes, mime)
@@ -626,12 +632,16 @@ export async function convertImage(bytes, { format = 'png', quality = 0.92, maxS
 		let height = img.naturalHeight || img.height
 
 		if (fmt.value === 'ico') {
-			const maxSide = Math.max(width, height)
-			let sizes = ICO_SIZES.filter(s => s <= maxSide)
-			if (!sizes.length) sizes = [Math.max(1, Math.min(256, maxSide))]
+			// ICO 每个尺寸都是一个正方形画布，非正方形源图会被拉伸或留白，直接拒绝
+			if (width !== height) throw new Error(`ICO 需要正方形图片，当前是 ${width} × ${height}`)
+			const wanted = Array.isArray(icoSizes) && icoSizes.length ? icoSizes : null
+			let sizes = wanted
+				? [...new Set(wanted.map(s => Math.min(256, Math.max(1, Math.round(s)))))].sort((a, b) => a - b)
+				: ICO_SIZES.filter(s => s <= Math.max(width, height))
+			if (!sizes.length) sizes = [Math.max(1, Math.min(256, Math.max(width, height)))]
 			const entries = []
 			for (const size of sizes) {
-				const canvas = drawImageToCanvas(img, { width: size, height: size, contain: true })
+				const canvas = drawImageToCanvas(img, { width: size, height: size })
 				const blob = await canvasToBlob(canvas, 'image/png')
 				entries.push({ width: canvas.width, height: canvas.height, data: await blobToBytes(blob) })
 			}
@@ -654,6 +664,63 @@ export async function convertImage(bytes, { format = 'png', quality = 0.92, maxS
 			height,
 			blobUrl: createObjectUrl(outBytes, fmt.mime),
 		}
+	} finally {
+		URL.revokeObjectURL(url)
+	}
+}
+
+/**
+ * PNG 减色重编码：把颜色数压到 maxColors 以内后，仍以 PNG 格式编码。
+ *
+ * 无损 PNG 本身已没有"质量"可调，"再压一次还是更大"时唯一的出路就是减少颜色数
+ * （截图、UI 稿、图标通常只有几百种颜色，压到 256 色肉眼基本看不出差别）。
+ * 相比直接换成 WEBP，这样导出的文件仍然是用户选择的 PNG。
+ *
+ * @param {Uint8Array} bytes 原始图片字节
+ * @param {{ maxColors?: number, maxSize?: number, sourceMime?: string }} options
+ *        maxSize：限制最大边长（0 = 不限），与其它转换函数语义一致
+ * @returns {Promise<{ bytes: Uint8Array, width: number, height: number, format: string, colors: number }>}
+ */
+export async function quantizePng(bytes, { maxColors = 256, maxSize = 0, sourceMime } = {}) {
+	const mime = sourceMime || sniffMime(bytes)
+	const { img, url } = await decodeImageBytes(bytes, mime)
+	try {
+		const canvas = drawImageToCanvas(img, { maxSize })
+		const ctx = canvas.getContext('2d', { willReadFrequently: true })
+		const { width, height } = canvas
+		const imageData = ctx.getImageData(0, 0, width, height)
+		const { data } = imageData
+		const total = width * height
+
+		// 大图按步长采样建调色板（最多约 6 万像素），避免量化时长时间卡顿
+		const step = Math.max(1, Math.floor(total / 60000))
+		const rgb = new Uint8Array(Math.ceil(total / step) * 3)
+		let w = 0
+		for (let i = 0; i < total; i += step) {
+			const o = i * 4
+			rgb[w] = data[o]
+			rgb[w + 1] = data[o + 1]
+			rgb[w + 2] = data[o + 2]
+			w += 3
+		}
+		const palette = medianCutPalette(rgb.subarray(0, w), maxColors)
+		// 不做抖动：抖动会重新引入大量杂色，反而让 PNG 变大
+		const indices = mapFrameToIndices(data, width, height, palette, { dither: false })
+
+		const out = ctx.createImageData(width, height)
+		for (let i = 0; i < total; i += 1) {
+			const color = palette[indices[i]] || [0, 0, 0]
+			const o = i * 4
+			out.data[o] = color[0]
+			out.data[o + 1] = color[1]
+			out.data[o + 2] = color[2]
+			// 透明度保持原样，PNG 的透明区域不会变成实心块
+			out.data[o + 3] = data[o + 3]
+		}
+		ctx.putImageData(out, 0, 0)
+
+		const blob = await canvasToBlob(canvas, 'image/png')
+		return { bytes: await blobToBytes(blob), width, height, format: 'png', colors: palette.length }
 	} finally {
 		URL.revokeObjectURL(url)
 	}

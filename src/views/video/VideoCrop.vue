@@ -395,11 +395,14 @@ const saveResult = async () => {
 		display: flex;
 		gap: 20px;
 		align-items: flex-start;
-		flex-wrap: wrap;
+		// 不换行：右侧面板固定宽度，左侧视频区域自适应收缩，
+		// 避免窄窗口下 panel 换行后与视频/裁剪框叠在一起
+		flex-wrap: nowrap;
+		min-height: 0;
 	}
 	.stage-wrap {
 		flex: 1;
-		min-width: 340px;
+		min-width: 0;
 		display: flex;
 		flex-flow: column;
 	}
@@ -480,6 +483,7 @@ const saveResult = async () => {
 	.panel {
 		width: 400px;
 		max-width: 100%;
+		flex: none;
 		display: flex;
 		flex-flow: column;
 		gap: 12px;

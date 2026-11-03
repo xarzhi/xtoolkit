@@ -143,21 +143,21 @@ const formatOptions = [
 	{ label: 'JPG', value: 'jpg' },
 	{ label: 'WEBP', value: 'webp' },
 ]
-const currentFormat = computed(() => getOutputFormat(form.value.format))
+const currentFormat = computed(() => getOutputFormat(form.format))
 
 const outputSize = computed(() => {
 	const width = source.value?.width || 0
 	const height = source.value?.height || 0
 	if (!width) return { width: 0, height: 0 }
-	if (form.value.mode === 'factor') {
+	if (form.mode === 'factor') {
 		return {
-			width: Math.max(1, Math.round(width * form.value.factor)),
-			height: Math.max(1, Math.round(height * form.value.factor)),
+			width: Math.max(1, Math.round(width * form.factor)),
+			height: Math.max(1, Math.round(height * form.factor)),
 		}
 	}
 	return {
-		width: Math.max(1, Math.round(form.value.targetWidth || width)),
-		height: Math.max(1, Math.round(form.value.targetHeight || height)),
+		width: Math.max(1, Math.round(form.targetWidth || width)),
+		height: Math.max(1, Math.round(form.targetHeight || height)),
 	}
 })
 
@@ -219,7 +219,7 @@ const upscale = async () => {
 			outCanvas.height = canvas.height
 			outCanvas.getContext('2d').putImageData(new ImageData(sharpened.data, sharpened.width, sharpened.height), 0, 0)
 		}
-		const bytes = await canvasToBytes(outCanvas, form.value.format)
+		const bytes = await canvasToBytes(outCanvas, form.format)
 		clearResult()
 		result.value = { bytes, width: outCanvas.width, height: outCanvas.height }
 		resultUrl.value = URL.createObjectURL(new Blob([bytes], { type: currentFormat.value.mime }))
@@ -279,6 +279,11 @@ onUnmounted(() => {
 	.options {
 		width: 380px;
 		max-width: 100%;
+		flex: none;
+		// antd Space 的子项默认按内容宽度，滑块会被挤成一小截，这里强制撑满
+		:deep(.ant-space-item) {
+			width: 100%;
+		}
 	}
 	.block-title {
 		font-weight: 600;

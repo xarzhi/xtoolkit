@@ -31,6 +31,11 @@ const routes = [
 						meta: { title: '图片美化', icon: 'antd:BgColorsOutlined' },
 					},
 					{
+						path: 'imgWatermark',
+						component: () => import('@/views/pictures/ImgWatermark.vue'),
+						meta: { title: '图片加水印', icon: 'antd:HighlightOutlined' },
+					},
+					{
 						path: 'imgCompress',
 						component: () => import('@/views/pictures/ImgCompress.vue'),
 						meta: { title: '图片压缩', icon: 'icon-gongjuxiang-tupianyasuo' },
@@ -75,6 +80,11 @@ const routes = [
 						path: 'videoTrim',
 						component: () => import('@/views/video/VideoTrim.vue'),
 						meta: { title: '视频截取', icon: 'antd:ScissorOutlined' },
+					},
+					{
+						path: 'videoCompress',
+						component: () => import('@/views/video/VideoCompress.vue'),
+						meta: { title: '视频压缩', icon: 'antd:CompressOutlined' },
 					},
 					{
 						path: 'videoFrame',
@@ -123,6 +133,26 @@ const routes = [
 						component: () => import('@/views/dev/MarkdownConvert.vue'),
 						meta: { title: 'Markdown 与 HTML 互转', icon: 'antd:FileMarkdownOutlined' },
 					},
+					{
+						path: 'regex',
+						component: () => import('@/views/dev/RegexTester.vue'),
+						meta: { title: '正则表达式验证', icon: 'antd:ExperimentOutlined' },
+					},
+					{
+						path: 'md5',
+						component: () => import('@/views/dev/Md5Tool.vue'),
+						meta: { title: 'MD5 摘要与校验', icon: 'antd:SafetyCertificateOutlined' },
+					},
+					{
+						path: 'morse',
+						component: () => import('@/views/dev/MorseCode.vue'),
+						meta: { title: '摩斯密码', icon: 'antd:SoundOutlined' },
+					},
+					{
+						path: 'unicode',
+						component: () => import('@/views/dev/UnicodeCodec.vue'),
+						meta: { title: 'Unicode 编解码', icon: 'antd:FontSizeOutlined' },
+					},
 				],
 			},
 			{
@@ -130,14 +160,113 @@ const routes = [
 				meta: { title: '设计', icon: 'antd:FormatPainterOutlined' },
 				children: [
 					{
-						path: 'gltf',
-						component: () => import('@/views/design/GltfViewer.vue'),
-						meta: { title: 'GLTF 模型查看', icon: 'antd:CodeSandboxOutlined' },
-					},
-					{
 						path: 'color',
 						component: () => import('@/views/design/ColorConvert.vue'),
 						meta: { title: '颜色格式互转', icon: 'antd:BgColorsOutlined' },
+					},
+					{
+						path: 'boxShadow',
+						component: () => import('@/views/design/BoxShadow.vue'),
+						meta: { title: '盒子阴影', icon: 'antd:PartitionOutlined' },
+					},
+					{
+						path: 'diagram',
+						component: () => import('@/views/design/DiagramEditor.vue'),
+						meta: { title: '流程图绘制', icon: 'antd:ApartmentOutlined' },
+					},
+					{
+						path: 'mindmap',
+						component: () => import('@/views/design/MindMap.vue'),
+						meta: { title: '思维导图', icon: 'antd:BranchesOutlined' },
+					},
+					{
+						path: 'bezier',
+						component: () => import('@/views/design/BezierCurve.vue'),
+						meta: { title: '贝塞尔曲线', icon: 'antd:FunctionOutlined' },
+					},
+				],
+			},
+			{
+				path: 'three',
+				meta: { title: '3D', icon: 'antd:BlockOutlined' },
+				children: [
+					{
+						path: 'modelViewer',
+						component: () => import('@/views/three/ModelViewer.vue'),
+						meta: { title: '3D 模型查看', icon: 'antd:CodeSandboxOutlined' },
+					},
+					{
+						path: 'modelConvert',
+						component: () => import('@/views/three/ModelConvert.vue'),
+						meta: { title: '3D 格式转换', icon: 'antd:SwapOutlined' },
+					},
+				],
+			},
+			{
+				path: 'math',
+				meta: { title: '数学', icon: 'antd:CalculatorOutlined' },
+				children: [
+					{
+						path: 'baseConvert',
+						component: () => import('@/views/math/BaseConvert.vue'),
+						meta: { title: '进制转换', icon: 'antd:SwapOutlined' },
+					},
+					{
+						path: 'bmi',
+						component: () => import('@/views/math/BmiCalculator.vue'),
+						meta: { title: 'BMI 计算', icon: 'antd:DashboardOutlined' },
+					},
+				],
+			},
+			{
+				path: 'life',
+				meta: { title: '生活', icon: 'antd:CoffeeOutlined' },
+				children: [
+					{
+						path: 'pomodoro',
+						component: () => import('@/views/life/Pomodoro.vue'),
+						meta: { title: '番茄时钟', icon: 'antd:ClockCircleOutlined' },
+					},
+					{
+						path: 'mortgage',
+						component: () => import('@/views/life/MortgageCalculator.vue'),
+						meta: { title: '房贷计算器', icon: 'antd:HomeOutlined' },
+					},
+					{
+						path: 'wechat',
+						component: () => import('@/views/life/WechatChatGen.vue'),
+						meta: { title: '微信对话生成器', icon: 'antd:WechatOutlined' },
+					},
+					{
+						path: 'idPhoto',
+						component: () => import('@/views/life/IdPhoto.vue'),
+						meta: { title: '证件照换底色', icon: 'antd:IdcardOutlined' },
+					},
+				],
+			},
+			{
+				path: 'game',
+				meta: { title: '游戏', icon: 'antd:PlayCircleOutlined' },
+				children: [
+					{
+						path: 'snake',
+						component: () => import('@/views/game/Snake.vue'),
+						meta: { title: '贪吃蛇', icon: 'antd:ThunderboltOutlined' },
+					},
+					{
+						path: 'maze',
+						component: () => import('@/views/game/Maze.vue'),
+						meta: { title: '走迷宫', icon: 'antd:CompassOutlined' },
+					},
+					{
+						path: 'sudoku',
+						component: () => import('@/views/game/Sudoku.vue'),
+						meta: { title: '数独', icon: 'antd:TableOutlined' },
+					},
+					{
+						path: 'minesweeper',
+						component: () => import('@/views/game/Minesweeper.vue'),
+						meta: { title: '扫雷', icon: 'antd:AimOutlined' },
 					},
 				],
 			},

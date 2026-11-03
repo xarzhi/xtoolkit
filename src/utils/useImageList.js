@@ -17,6 +17,8 @@ export function useImageList({ filterImage = true } = {}) {
 		const target = items.value.find(i => i.id === id)
 		if (target?.url) URL.revokeObjectURL(target.url)
 		if (target?.out?.blobUrl) URL.revokeObjectURL(target.out.blobUrl)
+		// 压缩结果单独生成的预览图（ImgCompress 用）
+		if (target?.previewUrl) URL.revokeObjectURL(target.previewUrl)
 		items.value = items.value.filter(i => i.id !== id)
 	}
 
@@ -24,6 +26,7 @@ export function useImageList({ filterImage = true } = {}) {
 		items.value.forEach(i => {
 			if (i.url) URL.revokeObjectURL(i.url)
 			if (i.out?.blobUrl) URL.revokeObjectURL(i.out.blobUrl)
+			if (i.previewUrl) URL.revokeObjectURL(i.previewUrl)
 		})
 		items.value = []
 	}

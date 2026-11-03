@@ -19,6 +19,44 @@ export function setVideoSrc(media, url) {
 	media.src = url
 }
 
+/**
+ * 取到视频的真实时长。
+ * 浏览器录制的 WebM（MediaRecorder 输出）常常没有时长元数据，duration 会是 Infinity，
+ * 这类视频一旦拿 Infinity 去算截取终点就会只录到几十毫秒。这里用「seek 到一个超大
+ * 时间点」的老办法逼内核把真实时长算出来。
+ */
+export async function resolveVideoDuration(video) {
+	if (!video) return 0
+	if (Number.isFinite(video.duration) && video.duration > 0) return video.duration
+	await new Promise(resolve => {
+		let settled = false
+		const finish = () => {
+			if (settled) return
+			settled = true
+			video.removeEventListener('durationchange', onChange)
+			video.removeEventListener('timeupdate', onChange)
+			resolve()
+		}
+		const onChange = () => {
+			if (Number.isFinite(video.duration) && video.duration > 0) finish()
+		}
+		video.addEventListener('durationchange', onChange)
+		video.addEventListener('timeupdate', onChange)
+		try {
+			video.currentTime = 1e101
+		} catch {
+			finish()
+		}
+		setTimeout(finish, 2000)
+	})
+	try {
+		video.currentTime = 0
+	} catch {
+		/* 忽略 */
+	}
+	return Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 0
+}
+
 /** 用字节数据创建 video 元素并等待元数据就绪 */
 export async function createVideoElement(url) {
 	const video = document.createElement('video')
@@ -42,6 +80,7 @@ export async function createVideoElement(url) {
 		video.addEventListener('loadeddata', onLoaded)
 		video.addEventListener('error', onError)
 	})
+	await resolveVideoDuration(video)
 	return video
 }
 

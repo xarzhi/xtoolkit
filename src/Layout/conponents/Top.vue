@@ -23,6 +23,7 @@
 
 				<!-- 月亮（当前是浅色，点了变深色） -->
 			</div>
+			
 			<div class="titlebar-button" id="titlebar-minimize" title="最小化" @click.stop="minimize">
 				<i class="iconfont icon-minimize"></i>
 			</div>
@@ -102,8 +103,8 @@ const close = () => withWindow(w => w.close())
 			cursor: pointer;
 			transition: background-color 0.15s;
 			img {
-				width: 26px;
-				height: 26px;
+				width: 28px;
+				height: 28px;
 			}
 			&:hover {
 				background-color: var(--icon-bg-color);
